@@ -1,27 +1,36 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useCursor } from "./hooks/useCursor";
 
 export const Cursor = () => {
   const { canvasRef, cursorPotisions, updateCursorPosition } = useCursor();
+  const [fps, setFps] = useState(0);
+  const frames = useRef<number[]>([]);
 
   const animateCursor = useCallback(() => {
-    // 全てのカーソルを横に1pxずつ動かす
-    // 最初は+1pxずつ右に動かし、画面の右端に到達したら左端に戻る
+    const now = performance.now();
+
+    frames.current = frames.current.filter((time) => now - time < 1000);
+    frames.current.push(now);
+
+    setFps(frames.current.length);
 
     cursorPotisions.current.forEach((pos, user) => {
       if (!canvasRef.current) return;
-      // Example animation logic: move cursor down by 1 pixel
-      pos.x += 1;
+      pos.x += 1; // Move cursor to the right
       if (pos.x >= canvasRef.current.width) {
-        pos.x = 0; // Reset to top if it goes off screen
+        pos.x = 0;
       }
       updateCursorPosition(user, pos);
     });
-    requestAnimationFrame(animateCursor);
+    return requestAnimationFrame(animateCursor);
   }, [canvasRef, cursorPotisions, updateCursorPosition]);
 
   useEffect(() => {
-    animateCursor();
+    const frameId = animateCursor();
+
+    return () => {
+      cancelAnimationFrame(frameId);
+    };
   }, [animateCursor]);
 
   return (
@@ -33,8 +42,27 @@ export const Cursor = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-      }}>
-      <canvas className="cursor-canvas" ref={canvasRef} style={{ width: "100%", height: "100%" }} />
+        position: "relative",
+      }}
+    >
+      <canvas
+        className="cursor-canvas"
+        ref={canvasRef}
+        style={{ width: "100%", height: "100%" }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 10,
+          background: "rgba(0,0,0,0.5)",
+          color: "white",
+          padding: "5px 10px",
+          borderRadius: "4px",
+        }}
+      >
+        FPS: {fps}
+      </div>
     </div>
   );
 };
