@@ -1,0 +1,17 @@
+services:
+  front:
+    build:
+      context: ./front/.devcontainer
+      dockerfile: Dockerfile
+    tty: true # コンテナが勝手に終了しないようにする
+    ports:
+      - 5173:5173
+    volumes:
+      - .:/workspace
+  wasm:
+    build:
+      context: ./wasm/.devcontainer
+      dockerfile: Dockerfile
+    tty: true # コンテナが勝手に終了しないようにする
+    volumes:
+      - .:/workspace

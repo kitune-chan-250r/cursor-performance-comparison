@@ -1,0 +1,19 @@
+{
+  "name": "front",
+  "dockerComposeFile": "../../docker-compose.yml",
+  "service": "front",
+  "workspaceFolder": "/workspace/front",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-docker",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    },
+    "settings": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    }
+  }
+}
