@@ -1,0 +1,15 @@
+{
+  "name": "canvas-draw-lib",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "canvas_draw_lib_bg.wasm",
+    "canvas_draw_lib.js",
+    "canvas_draw_lib.d.ts"
+  ],
+  "main": "canvas_draw_lib.js",
+  "types": "canvas_draw_lib.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

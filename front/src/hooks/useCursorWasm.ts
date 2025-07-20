@@ -1,29 +1,38 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-
-export interface CursorPosition {
-  x: number;
-  y: number;
-}
+import init, { draw_all_cursor } from "../../pkg/canvas_draw_lib.js";
+import type { CursorPosition } from "./useCursor.js";
 
 const USERS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
 const CURSOR_SIZE = 50; // Size of the cursor in pixels
 
-export const useCursor = () => {
+export const useCursorWasm = () => {
+  const [isWasmReady, setIsWasmReady] = useState(false);
   // canvas要素への参照
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRefWasm = useRef<HTMLCanvasElement>(null);
   // カーソル画像への参照
   const cursorImageRef = useRef<HTMLImageElement>(null);
   // カーソルのロードが完了したかどうかの状態
-  const [isCursorImgLoaded, setIsCursorImgLoaded] = useState(false);
+  const [isCursorImgLoadedWasm, setIsCursorImgLoaded] = useState(false);
   // ユーザーごとのカーソル位置を管理するMap
-  const cursorPotisions = useRef(new Map<string, CursorPosition>());
+  const cursorPotisionsWasm = useRef(new Map<string, CursorPosition>());
+
+  const initializeWasm = useCallback(async () => {
+    try {
+      const wasmModule = await init();
+      if (wasmModule) {
+        setIsWasmReady(true);
+      }
+    } catch (error) {
+      console.error("Failed to initialize WebAssembly module:", error);
+    }
+  }, []);
 
   /**
    * canvas要素とそのコンテキストを取得する関数
    * canvasが存在しない場合はエラーを投げる
    */
   const getCanvasAndCtx = useCallback(() => {
-    const canvas = canvasRef.current;
+    const canvas = canvasRefWasm.current;
     if (!canvas) throw new Error("Canvas reference is not set");
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Failed to get canvas context");
@@ -37,7 +46,7 @@ export const useCursor = () => {
   const initializeCursorPositions = useCallback(() => {
     let cursorY = 0;
     USERS.forEach((user, index) => {
-      cursorPotisions.current.set(user, { x: 0, y: cursorY });
+      cursorPotisionsWasm.current.set(user, { x: 0, y: cursorY });
       cursorY = index * CURSOR_SIZE;
     });
   }, []);
@@ -81,84 +90,36 @@ export const useCursor = () => {
     };
   }, []);
 
-  /**
-   * カーソルを指定された位置に描画する関数
-   * isCursorImgLoadedがtrueでない場合は何もしない
-   */
-  const drawCursor = useCallback(
-    (pos: CursorPosition) => {
-      const { ctx } = getCanvasAndCtx();
-      if (!isCursorImgLoaded || !cursorImageRef.current) return;
-
-      // Clear the canvas before drawing
-      // ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.imageSmoothingEnabled = true;
-
-      // Draw the cursor image at the specified position
-      ctx.drawImage(cursorImageRef.current, pos.x, pos.y, CURSOR_SIZE, CURSOR_SIZE);
-    },
-    [getCanvasAndCtx, isCursorImgLoaded]
-  );
-
-  /**
-   * 全てのカーソルを描画する関数
-   */
-  const drawAllCursors = useCallback(() => {
-    if (!isCursorImgLoaded || !cursorImageRef.current) return;
-
-    const { canvas, ctx } = getCanvasAndCtx();
-    // Clear the canvas before drawing
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    cursorPotisions.current.forEach((pos) => {
-      // console.info(`Drawing cursor at position: ${JSON.stringify(pos)}`);
-      drawCursor(pos);
-    });
-  }, [drawCursor, getCanvasAndCtx, isCursorImgLoaded]);
+  useEffect(() => {
+    void (async () => {
+      initializeWasm();
+      initializeCursorPositions();
+      initializeCanvas();
+      await initializeCursorImage();
+    })();
+  }, [initializeCanvas, initializeCursorImage, initializeCursorPositions, initializeWasm]);
 
   /**
    * ユーザーのカーソル位置を更新する関数
    */
-  const updateCursorPosition = useCallback(
+  const updateCursorPositionWasm = useCallback(
     (user: string, pos: CursorPosition) => {
+      if (!cursorImageRef.current || !isCursorImgLoadedWasm) return;
       if (!USERS.includes(user)) {
         console.warn(`User ${user} is not recognized.`);
         return;
       }
-      cursorPotisions.current.set(user, pos);
-      // console.info(`Updated cursor position for user ${user}: ${JSON.stringify(pos)}`);
-      drawAllCursors();
+      cursorPotisionsWasm.current.set(user, pos);
+      draw_all_cursor(cursorPotisionsWasm.current, cursorImageRef.current, CURSOR_SIZE);
     },
-    [drawAllCursors]
+    [isCursorImgLoadedWasm]
   );
 
-  /**
-   * カーソル描画前の初期化処理
-   */
-  useEffect(() => {
-    const { canvas, ctx } = getCanvasAndCtx();
-
-    // Initialize cursor positions and image
-    void (async () => {
-      initializeCanvas();
-      initializeCursorPositions();
-      initializeCursorImage();
-
-      console.info(`initialize compleated. ${JSON.stringify(cursorPotisions.current, null, 2)}`);
-    })();
-
-    // Clean up on unmount
-    return () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    };
-  }, [getCanvasAndCtx, initializeCanvas, initializeCursorImage, initializeCursorPositions]);
-
-  useEffect(() => {
-    if (isCursorImgLoaded) {
-      console.info(`Cursor image loaded, drawing cursors...`);
-      drawAllCursors();
-    }
-  }, [drawAllCursors, isCursorImgLoaded]);
-
-  return { canvasRef, cursorPotisions, updateCursorPosition };
+  return {
+    canvasRefWasm,
+    cursorPotisionsWasm,
+    updateCursorPositionWasm,
+    isWasmReady,
+    isCursorImgLoadedWasm,
+  };
 };

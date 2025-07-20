@@ -1,0 +1,27 @@
+[package]
+name = "canvas-draw-lib"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+wasm-bindgen = "0.2.100"
+serde = "1.0.219"
+js-sys = "0.3.77"
+
+[dependencies.web-sys]
+version = "0.3.77"
+features = [
+    "CanvasRenderingContext2d",
+    "HtmlCanvasElement",
+    "Window",
+    "Document",
+    "Element",
+    "HtmlImageElement"
+]
+
+[dependencies.tsify-next]
+version = "0.5.6"
+features = ["js"]
+
+[lib]
+crate-type=["cdylib"]
