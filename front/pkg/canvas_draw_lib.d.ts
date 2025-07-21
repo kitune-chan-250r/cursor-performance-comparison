@@ -1,6 +1,18 @@
 /* tslint:disable */
 /* eslint-disable */
-export function draw_all_cursor(positions: UserCursorPositionMap, image: HTMLImageElement, cursor_size: number): void;
+/**
+ *
+ * * wasmモジュールが初期化された際に、ユーザーのカーソル位置を初期化する
+ * 
+ */
+export function init(): void;
+/**
+ *
+ * * ユーザーのカーソル位置を更新し、全てのユーザーのカーソルを描画する
+ * 
+ */
+export function update_cursor_position(user_id: string, pos: CursorPosition, image: HTMLImageElement, cursor_size: number): void;
+export function get_user_cursor_positions(): UserCursorPositionMap;
 export interface CursorPosition {
     x: number;
     y: number;
@@ -13,7 +25,9 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly draw_all_cursor: (a: any, b: any, c: number) => void;
+  readonly init: () => void;
+  readonly update_cursor_position: (a: number, b: number, c: any, d: any, e: number) => void;
+  readonly get_user_cursor_positions: () => any;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_exn_store: (a: number) => void;

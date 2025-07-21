@@ -4,9 +4,10 @@ import { JavascriptVer } from "./JavascriptVer";
 import { Switch } from "antd";
 
 export const Cursor = () => {
-  const [isWasmMode, setIsWasmMode] = useState(false);
+  const [isWasmMode, setIsWasmMode] = useState(localStorage.getItem("cursorMode") === "true");
 
   const toggleMode = () => {
+    localStorage.setItem("cursorMode", (!isWasmMode).toString());
     setIsWasmMode((prev) => !prev);
   };
 
@@ -25,7 +26,8 @@ export const Cursor = () => {
       <Switch
         checkedChildren="Javascript"
         unCheckedChildren="Wasm"
-        defaultChecked
+        // defaultChecked
+        checked={!isWasmMode}
         onChange={toggleMode}
         style={{
           position: "absolute",

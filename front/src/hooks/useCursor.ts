@@ -5,7 +5,28 @@ export interface CursorPosition {
   y: number;
 }
 
-const USERS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
+const USERS = [
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F",
+  "G",
+  "H",
+  "I",
+  "J",
+  "K",
+  "L",
+  "M",
+  "N",
+  "O",
+  "P",
+  "Q",
+  "R",
+  "S",
+  "T",
+];
 const CURSOR_SIZE = 50; // Size of the cursor in pixels
 
 export const useCursor = () => {

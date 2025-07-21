@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import init, { draw_all_cursor } from "../../pkg/canvas_draw_lib.js";
+import init, {
+  update_cursor_position,
+  get_user_cursor_positions,
+} from "../../pkg/canvas_draw_lib.js";
 import type { CursorPosition } from "./useCursor.js";
 
-const USERS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
+// const USERS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
 const CURSOR_SIZE = 50; // Size of the cursor in pixels
 
 export const useCursorWasm = () => {
@@ -14,7 +17,7 @@ export const useCursorWasm = () => {
   // カーソルのロードが完了したかどうかの状態
   const [isCursorImgLoadedWasm, setIsCursorImgLoaded] = useState(false);
   // ユーザーごとのカーソル位置を管理するMap
-  const cursorPotisionsWasm = useRef(new Map<string, CursorPosition>());
+  // const cursorPotisionsWasm = useRef(new Map<string, CursorPosition>());
 
   const initializeWasm = useCallback(async () => {
     try {
@@ -43,13 +46,13 @@ export const useCursorWasm = () => {
    * 各ユーザーの初期カーソル位置を設定する関数
    * 縦に並べる
    */
-  const initializeCursorPositions = useCallback(() => {
-    let cursorY = 0;
-    USERS.forEach((user, index) => {
-      cursorPotisionsWasm.current.set(user, { x: 0, y: cursorY });
-      cursorY = index * CURSOR_SIZE;
-    });
-  }, []);
+  // const initializeCursorPositions = useCallback(() => {
+  //   let cursorY = 0;
+  //   USERS.forEach((user, index) => {
+  //     cursorPotisionsWasm.current.set(user, { x: 0, y: cursorY });
+  //     cursorY = index * CURSOR_SIZE;
+  //   });
+  // }, []);
 
   const initializeCanvas = useCallback(() => {
     const { canvas, ctx } = getCanvasAndCtx();
@@ -93,33 +96,43 @@ export const useCursorWasm = () => {
   useEffect(() => {
     void (async () => {
       initializeWasm();
-      initializeCursorPositions();
+      // initializeCursorPositions();
       initializeCanvas();
       await initializeCursorImage();
     })();
-  }, [initializeCanvas, initializeCursorImage, initializeCursorPositions, initializeWasm]);
+  }, [initializeCanvas, initializeCursorImage, initializeWasm]);
 
   /**
    * ユーザーのカーソル位置を更新する関数
    */
-  const updateCursorPositionWasm = useCallback(
+  // const updateCursorPositionWasm = useCallback(
+  //   (user: string, pos: CursorPosition) => {
+  //     if (!cursorImageRef.current || !isCursorImgLoadedWasm) return;
+  //     if (!USERS.includes(user)) {
+  //       console.warn(`User ${user} is not recognized.`);
+  //       return;
+  //     }
+  //     cursorPotisionsWasm.current.set(user, pos);
+  //     draw_all_cursor(cursorPotisionsWasm.current, cursorImageRef.current, CURSOR_SIZE);
+  //   },
+  //   [isCursorImgLoadedWasm]
+  // );
+
+  const updateWasmCursorPosition = useCallback(
     (user: string, pos: CursorPosition) => {
       if (!cursorImageRef.current || !isCursorImgLoadedWasm) return;
-      if (!USERS.includes(user)) {
-        console.warn(`User ${user} is not recognized.`);
-        return;
-      }
-      cursorPotisionsWasm.current.set(user, pos);
-      draw_all_cursor(cursorPotisionsWasm.current, cursorImageRef.current, CURSOR_SIZE);
+      update_cursor_position(user, pos, cursorImageRef.current, CURSOR_SIZE);
     },
     [isCursorImgLoadedWasm]
   );
 
   return {
     canvasRefWasm,
-    cursorPotisionsWasm,
-    updateCursorPositionWasm,
+    // cursorPotisionsWasm,
+    // updateCursorPositionWasm,
     isWasmReady,
     isCursorImgLoadedWasm,
+    updateWasmCursorPosition,
+    get_user_cursor_positions,
   };
 };

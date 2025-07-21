@@ -6,10 +6,10 @@ export const WasmVer = () => {
   const frames = useRef<number[]>([]);
   const {
     canvasRefWasm,
-    cursorPotisionsWasm,
-    updateCursorPositionWasm,
     isCursorImgLoadedWasm,
-    isWasmReady
+    isWasmReady,
+    updateWasmCursorPosition,
+    get_user_cursor_positions,
   } = useCursorWasm();
 
   const animateCursorWasm = useCallback(() => {
@@ -20,16 +20,27 @@ export const WasmVer = () => {
 
     setFps(frames.current.length);
 
-    cursorPotisionsWasm.current.forEach((pos, user) => {
+    // cursorPotisionsWasm.current.forEach((pos, user) => {
+    //   if (!canvasRefWasm.current) return;
+    //   pos.x += 1; // Move cursor to the right
+    //   if (pos.x >= canvasRefWasm.current.width) {
+    //     pos.x = 0;
+    //   }
+    //   updateCursorPositionWasm(user, pos);
+    // });
+
+    const userCursorPotisions = get_user_cursor_positions();
+    userCursorPotisions.forEach((pos, user) => {
       if (!canvasRefWasm.current) return;
       pos.x += 1; // Move cursor to the right
       if (pos.x >= canvasRefWasm.current.width) {
         pos.x = 0;
       }
-      updateCursorPositionWasm(user, pos);
+      updateWasmCursorPosition(user, pos);
     });
+
     return requestAnimationFrame(animateCursorWasm);
-  }, [canvasRefWasm, cursorPotisionsWasm, updateCursorPositionWasm]);
+  }, [canvasRefWasm, get_user_cursor_positions, updateWasmCursorPosition]);
 
   useEffect(() => {
     if (isWasmReady && isCursorImgLoadedWasm) {
