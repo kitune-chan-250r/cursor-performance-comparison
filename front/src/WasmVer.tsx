@@ -1,9 +1,7 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useCursorWasm } from './hooks/useCursorWasm';
 
 export const WasmVer = () => {
-  const [fps, setFps] = useState(0);
-  const frames = useRef<number[]>([]);
   const {
     canvasRefWasm,
     isCursorImgLoadedWasm,
@@ -13,12 +11,6 @@ export const WasmVer = () => {
   } = useCursorWasm();
 
   const animateCursorWasm = useCallback(() => {
-    const now = performance.now();
-
-    frames.current = frames.current.filter((time) => now - time < 1000);
-    frames.current.push(now);
-
-    setFps(frames.current.length);
 
     // cursorPotisionsWasm.current.forEach((pos, user) => {
     //   if (!canvasRefWasm.current) return;
@@ -39,40 +31,24 @@ export const WasmVer = () => {
       updateWasmCursorPosition(user, pos);
     });
 
-    return requestAnimationFrame(animateCursorWasm);
   }, [canvasRefWasm, get_user_cursor_positions, updateWasmCursorPosition]);
 
   useEffect(() => {
     if (isWasmReady && isCursorImgLoadedWasm) {
-      const frameId = animateCursorWasm();
+      const id = setInterval(animateCursorWasm, 1);
 
       return () => {
-        cancelAnimationFrame(frameId);
+        clearInterval(id);
       };
     }
   }, [isWasmReady, isCursorImgLoadedWasm, animateCursorWasm]);
 
   return (
-    <Fragment>
-      <canvas
-        className="cursor-canvas"
-        id="cursorCanvas"
-        ref={canvasRefWasm}
-        style={{ width: "100%", height: "100%" }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          top: 10,
-          right: 10,
-          background: "rgba(0,0,0,0.5)",
-          color: "white",
-          padding: "5px 10px",
-          borderRadius: "4px",
-        }}
-      >
-        FPS: {fps}
-      </div>
-    </Fragment>
+    <canvas
+      className="cursor-canvas"
+      id="cursorCanvas"
+      ref={canvasRefWasm}
+      style={{ width: "100%", height: "100%" }}
+    />
   )
 }

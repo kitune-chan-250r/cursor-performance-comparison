@@ -42,14 +42,46 @@ pub fn cache_canvas_context() {
 }
 
 /**
+ * 数字に応じてエクセルのカラム名のような文字を生成する
+ */
+pub fn number_to_column_string(mut num: u32) -> String {
+    if num == 0 {
+        return String::new();
+    }
+
+    let mut result = String::new();
+    while num > 0 {
+        // 26進数に変換するための剰余を計算
+        let remainder = (num - 1) % 26;
+        // ASCIIコード 'A' (65) からのオフセットとして文字を生成
+        result.insert(0, (b'A' + remainder as u8) as char);
+        // 次の桁へ
+        num = (num - 1) / 26;
+    }
+    result
+}
+
+pub fn initialize_user_array(num: u32) -> Vec<String> {
+    let mut result: Vec<String> = Vec::new();
+    let mut i: u32 = 1;
+    while i <= num {
+        result.push(number_to_column_string(i));
+        i += 1;
+    }
+
+    result
+}
+
+/**
  * ユーザーのカーソル位置を初期化する
  * この関数は、WASMモジュールが初期化された際に呼び出される
  */
 pub fn initialize_user_cursor_positions() {
-    let users = [
-        "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R",
-        "S", "T",
-    ];
+    // let users = [
+    //     "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R",
+    //     "S", "T",
+    // ];
+    let users = initialize_user_array(200);
     let mut initial_position = CursorPosition { x: 0.0, y: 0.0 };
     users.iter().for_each(|user| {
         USER_CURSOR_POSITIONS.with(|positions_cell| {

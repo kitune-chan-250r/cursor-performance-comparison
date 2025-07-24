@@ -27,6 +27,43 @@ const USERS = [
   "S",
   "T",
 ];
+
+/**
+ * 1から始まる数値をExcelのカラム名のような文字列に変換します。
+ * (例: 1 -> A, 26 -> Z, 27 -> AA)
+ * @param num 変換する数値 (1以上の整数)
+ * @returns 変換後の文字列
+ */
+const numberToColumnString = (num: number): string => {
+  let result = "";
+  while (num > 0) {
+    const remainder = (num - 1) % 26;
+    result = String.fromCharCode(65 + remainder) + result; // 65は'A'のASCIIコード
+    num = Math.floor((num - 1) / 26);
+  }
+  return result;
+};
+
+/**
+ * 指定された要素の数だけ文字列型の要素を含む配列を初期化します。
+ * 要素は 'A', 'B', 'C', ..., 'Z', 'AA', 'AB', ... のように設定されます。
+ * @param count 配列の要素数
+ * @returns 初期化された文字列配列
+ */
+const initializeStringArray = (count: number): string[] => {
+  if (count < 0) {
+    return [];
+  }
+
+  const result: string[] = [];
+  for (let i = 1; i <= count; i++) {
+    result.push(numberToColumnString(i));
+  }
+  return result;
+};
+
+const users = [...initializeStringArray(200)];
+
 const CURSOR_SIZE = 50; // Size of the cursor in pixels
 
 export const useCursor = () => {
@@ -57,7 +94,7 @@ export const useCursor = () => {
    */
   const initializeCursorPositions = useCallback(() => {
     let cursorY = 0;
-    USERS.forEach((user, index) => {
+    users.forEach((user, index) => {
       cursorPotisions.current.set(user, { x: 0, y: cursorY });
       cursorY = index * CURSOR_SIZE;
     });
